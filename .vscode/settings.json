@@ -1,0 +1,16 @@
+{
+    "bitoAI.codeCompletion.enableAutoCompletion": false,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "AI Credit Scoring",
+            "database": "credit_scoring_db",
+            "username": "openpg",
+            "password": "root",
+            "connectionTimeout": 30
+        }
+    ]
+}
