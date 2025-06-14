@@ -1,15 +1,16 @@
 import { Pool } from "pg"
+import bcrypt from "bcryptjs"
 
 // Create a PostgreSQL connection pool with direct connection
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  user: process.env.POSTGRES_USER || "postgres",
+  password: process.env.POSTGRES_PASSWORD || "root",
+  host: process.env.POSTGRES_HOST || "localhost",
+  port: parseInt(process.env.POSTGRES_PORT || "5432"),
+  database: process.env.POSTGRES_DB || "credit_scoring_db",
 })
 
-// Helper function to execute SQL queries
+// Helper function to execute queries
 export async function query(text: string, params?: any[]) {
   try {
     const start = Date.now()
@@ -26,13 +27,30 @@ export async function query(text: string, params?: any[]) {
 // Initialize database tables
 export async function initializeDatabase() {
   try {
-    // Create users table (simplified without MFA fields)
+    // Check if tables exist first
+    const tablesExist = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `)
+
+    if (tablesExist.rows[0].exists) {
+      console.log("Tables already exist, skipping initialization")
+      return true
+    }
+
+    // Create users table without MFA fields
     await query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(20) DEFAULT 'user',
+        status VARCHAR(20) DEFAULT 'active',
+        last_active TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
@@ -56,6 +74,8 @@ export async function initializeDatabase() {
         additional_notes TEXT,
         credit_score INTEGER,
         risk_level VARCHAR(20),
+        risk_probability DECIMAL(5,4),
+        recommendations TEXT,
         status VARCHAR(20) DEFAULT 'Pending',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -68,6 +88,13 @@ export async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
       CREATE INDEX IF NOT EXISTS idx_applications_risk_level ON applications(risk_level);
     `)
+
+    // Insert default admin user
+    await query(`
+      INSERT INTO users (name, email, password_hash, role)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (email) DO NOTHING
+    `, ['Admin User', 'admin@example.com', await bcrypt.hash('admin123', 10), 'admin'])
 
     console.log("Database initialized successfully")
   } catch (error) {
@@ -87,7 +114,3 @@ export async function testConnection() {
     throw error
   }
 }
-
-initializeDatabase().catch((err) => {
-  console.error("Failed to initialize database:", err)
-})

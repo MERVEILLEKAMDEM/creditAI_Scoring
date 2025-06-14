@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, FileText, Home, PlusCircle, Settings, Users } from "lucide-react"
+import { BarChart3, FileText, Home, PlusCircle, Settings, Users, Download } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -32,6 +32,11 @@ const navItems = [
     title: "Users",
     href: "/dashboard/users",
     icon: Users,
+  },
+  {
+    title: "Export",
+    href: "/dashboard/export",
+    icon: Download,
   },
   {
     title: "Settings",

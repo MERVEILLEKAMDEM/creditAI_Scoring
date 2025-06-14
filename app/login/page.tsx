@@ -1,58 +1,154 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { LoginForm } from "@/components/auth/login-form"
+"use client"
 
-export const metadata: Metadata = {
-  title: "Login | AI Credit Risk Analysis System",
-  description: "Login to the AI Credit Risk Analysis System",
-}
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { Eye, EyeOff } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { LoadingSpinner } from "@/components/loading-spinner"
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const router = useRouter()
+  const { toast } = useToast()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed")
+      }
+
+      // Store token and user data
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
+
+      // Show success message
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      })
+
+      // Redirect to dashboard
+      router.replace("/dashboard")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed")
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: err instanceof Error ? err.message : "Please check your credentials and try again",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="container relative flex h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-        <div className="absolute inset-0 bg-primary" />
-        <div className="relative z-20 flex items-center text-lg font-medium">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mr-2 h-6 w-6"
-          >
-            <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
-            <path d="M9 18h6" />
-            <path d="M10 22h4" />
-          </svg>
-          AI Credit Risk Analysis
-        </div>
-        <div className="relative z-20 mt-auto">
-          <blockquote className="space-y-2">
-            <p className="text-lg">
-              "This platform has revolutionized our credit risk assessment process, making it more accurate and
-              efficient."
-            </p>
-            <footer className="text-sm">Sofia Davis, Financial Analyst</footer>
-          </blockquote>
-        </div>
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/2312074.jpg"
+          alt="Background"
+          fill
+          className="object-cover object-center opacity-50 dark:opacity-20"
+          priority
+          quality={100}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-background/80 to-background/40 backdrop-blur-sm" />
       </div>
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-            <p className="text-sm text-muted-foreground">Enter your credentials to sign in to your account</p>
-          </div>
-          <LoginForm />
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline underline-offset-4 hover:text-primary">
-              Sign up
-            </Link>
-          </p>
+
+      <div className="w-full max-w-md space-y-8 z-10">
+        <div className="flex flex-col items-center justify-center text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-primary">AI Credit Risk Analysis</h1>
+          <p className="mt-2 text-lg text-muted-foreground">Advanced machine learning powered credit scoring system</p>
         </div>
+
+        <Card className="w-full border-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to sign in to your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                  {error}
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full pr-10"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <LoadingSpinner /> : "Sign in"}
+              </Button>
+
+              <div className="text-center text-sm">
+                <span className="text-muted-foreground">Don't have an account? </span>
+                <Link href="/signup" className="text-primary hover:underline font-medium">
+                  Sign up
+                </Link>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

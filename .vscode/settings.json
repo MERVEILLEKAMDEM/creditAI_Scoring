@@ -1,5 +1,4 @@
 {
-    "bitoAI.codeCompletion.enableAutoCompletion": false,
     "sqltools.connections": [
         {
             "previewLimit": 50,
@@ -12,5 +11,6 @@
             "password": "root",
             "connectionTimeout": 30
         }
-    ]
+    ],
+    "DockerRun.DisableDockerrc": true
 }

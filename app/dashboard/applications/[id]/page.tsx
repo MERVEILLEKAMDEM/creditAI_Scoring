@@ -6,10 +6,12 @@ export const metadata: Metadata = {
   description: "View detailed information about a credit application",
 }
 
-export default function ApplicationDetailsPage({ params }: { params: { id: string } }) {
+export default async function ApplicationDetailsPage({ params }: { params: { id: string } }) {
+  const { id } = params
+  
   return (
     <div className="space-y-6">
-      <ApplicationDetails applicationId={params.id} />
+      <ApplicationDetails applicationId={id} />
     </div>
   )
 }

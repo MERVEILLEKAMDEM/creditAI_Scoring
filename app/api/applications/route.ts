@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server"
 import { query } from "@/lib/db"
+import { analyzeCreditRisk } from "@/lib/ml-model"
+
+interface Application {
+  annual_income: number;
+  loan_amount: number;
+  [key: string]: any;
+}
 
 // Generate a random credit score between min and max
 function generateCreditScore(min: number, max: number): number {
@@ -37,7 +44,14 @@ export async function GET() {
       ORDER BY created_at DESC
     `)
 
-    return NextResponse.json(result.rows)
+    // Convert currency to XOF
+    const applications = result.rows.map((app: Application) => ({
+      ...app,
+      annual_income: app.annual_income * 600, // USD to XOF conversion
+      loan_amount: app.loan_amount * 600 // USD to XOF conversion
+    }))
+
+    return NextResponse.json(applications)
   } catch (error) {
     console.error("Error fetching applications:", error)
     return NextResponse.json({ error: "Failed to fetch applications" }, { status: 500 })
@@ -64,42 +78,26 @@ export async function POST(request: Request) {
     // Generate application ID
     const applicationId = generateApplicationId()
 
-    // Simulate AI credit scoring
-    let creditScore: number
-    switch (creditHistory) {
-      case "excellent":
-        creditScore = generateCreditScore(750, 850)
-        break
-      case "good":
-        creditScore = generateCreditScore(700, 749)
-        break
-      case "fair":
-        creditScore = generateCreditScore(650, 699)
-        break
-      case "poor":
-        creditScore = generateCreditScore(600, 649)
-        break
-      case "bad":
-        creditScore = generateCreditScore(500, 599)
-        break
-      case "no-history":
-        creditScore = generateCreditScore(550, 650)
-        break
-      default:
-        creditScore = generateCreditScore(600, 700)
-    }
+    // Use ML model for credit scoring
+    const modelResult = await analyzeCreditRisk({
+      employment_status: employmentStatus,
+      annual_income: Number(annualIncome),
+      loan_amount: Number(loanAmount),
+      loan_purpose: loanPurpose,
+      credit_history: creditHistory
+    })
 
-    // Determine risk level and status
-    const riskLevel = determineRiskLevel(creditScore)
-    const status = determineStatus(riskLevel)
+    // Determine status based on risk level
+    const status = determineStatus(modelResult.risk_level)
 
-    // Insert application into database
+    // Insert application into database (store amounts in XOF)
     const result = await query(
       `INSERT INTO applications (
         application_id, first_name, last_name, email, phone, address, 
         employment_status, annual_income, loan_amount, loan_purpose, 
-        credit_history, additional_notes, credit_score, risk_level, status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        credit_history, additional_notes, credit_score, risk_level, status,
+        risk_probability, recommendations
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       RETURNING *`,
       [
         applicationId,
@@ -109,14 +107,16 @@ export async function POST(request: Request) {
         phone,
         address,
         employmentStatus,
-        annualIncome,
-        loanAmount,
+        Number(annualIncome) * 600, // Convert to XOF
+        Number(loanAmount) * 600, // Convert to XOF
         loanPurpose,
         creditHistory,
         additionalNotes,
-        creditScore,
-        riskLevel,
+        modelResult.credit_score,
+        modelResult.risk_level,
         status,
+        modelResult.probability,
+        JSON.stringify(modelResult.recommendations)
       ],
     )
 

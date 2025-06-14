@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Eye } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -99,7 +100,23 @@ export function RecentApplications() {
   }
 
   return (
-    <Card>
+    <div className="relative rounded-xl overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/3059713.jpg"
+          alt="Recent Applications Background"
+          fill
+          className="object-cover object-center"
+          priority
+          quality={100}
+        />
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        <Card className="bg-background/60 backdrop-blur-md border-primary/20">
       <CardHeader>
         <CardTitle>Recent Applications</CardTitle>
         <CardDescription>Latest credit applications processed by the AI system</CardDescription>
@@ -108,7 +125,7 @@ export function RecentApplications() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
+                  <tr className="border-b border-primary/10">
                 <th className="pb-2 text-left font-medium">Application ID</th>
                 <th className="pb-2 text-left font-medium">Applicant</th>
                 <th className="pb-2 text-left font-medium">Credit Score</th>
@@ -120,7 +137,7 @@ export function RecentApplications() {
             </thead>
             <tbody>
               {applications.map((app) => (
-                <tr key={app.id} className="border-b">
+                    <tr key={app.id} className="border-b border-primary/10">
                   <td className="py-3">{app.id}</td>
                   <td className="py-3">{app.applicant}</td>
                   <td className="py-3">
@@ -160,5 +177,7 @@ export function RecentApplications() {
         </div>
       </CardContent>
     </Card>
+      </div>
+    </div>
   )
 }
