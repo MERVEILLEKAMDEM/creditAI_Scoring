@@ -9,6 +9,30 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useSettings } from "@/contexts/settings-context"
+
+const currencySymbols: Record<string, string> = {
+  XOF: "CFA",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  CNY: "¥",
+  INR: "₹",
+  AUD: "A$",
+  CAD: "C$",
+  CHF: "Fr",
+  HKD: "HK$",
+  SGD: "S$",
+  ZAR: "R",
+  BRL: "R$",
+  MXN: "$",
+  AED: "د.إ",
+  SAR: "﷼",
+  NGN: "₦",
+  KES: "KSh",
+  EGP: "E£",
+}
 
 type Application = {
   id: string
@@ -20,13 +44,14 @@ type Application = {
 }
 
 export function RecentApplications() {
+  const { settings } = useSettings()
   const [applications] = useState<Application[]>([
     {
       id: "APP001",
       applicant: "John Smith",
       creditScore: 785,
       riskLevel: "Low",
-      amount: "$50,000",
+      amount: "50000",
       status: "Approved",
     },
     {
@@ -34,7 +59,7 @@ export function RecentApplications() {
       applicant: "Sarah Johnson",
       creditScore: 620,
       riskLevel: "Medium",
-      amount: "$25,000",
+      amount: "25000",
       status: "Review",
     },
     {
@@ -42,7 +67,7 @@ export function RecentApplications() {
       applicant: "Mike Wilson",
       creditScore: 450,
       riskLevel: "High",
-      amount: "$30,000",
+      amount: "30000",
       status: "Declined",
     },
     {
@@ -50,7 +75,7 @@ export function RecentApplications() {
       applicant: "Emily Davis",
       creditScore: 720,
       riskLevel: "Low",
-      amount: "$40,000",
+      amount: "40000",
       status: "Approved",
     },
     {
@@ -58,7 +83,7 @@ export function RecentApplications() {
       applicant: "David Brown",
       creditScore: 580,
       riskLevel: "Medium",
-      amount: "$20,000",
+      amount: "20000",
       status: "Review",
     },
   ])
@@ -156,7 +181,7 @@ export function RecentApplications() {
                       {app.riskLevel}
                     </Badge>
                   </td>
-                  <td className="py-3">{app.amount}</td>
+                  <td className="py-3">{currencySymbols[settings.currency] || settings.currency}{parseInt(app.amount).toLocaleString()}</td>
                   <td className="py-3">
                     <Badge variant="outline" className={cn(getStatusBadgeVariant(app.status))}>
                       {app.status}

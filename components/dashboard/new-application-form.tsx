@@ -13,6 +13,30 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { useSettings } from "@/contexts/settings-context"
+
+const currencySymbols: Record<string, string> = {
+  XOF: "CFA",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  CNY: "¥",
+  INR: "₹",
+  AUD: "A$",
+  CAD: "C$",
+  CHF: "Fr",
+  HKD: "HK$",
+  SGD: "S$",
+  ZAR: "R",
+  BRL: "R$",
+  MXN: "$",
+  AED: "د.إ",
+  SAR: "﷼",
+  NGN: "₦",
+  KES: "KSh",
+  EGP: "E£",
+}
 
 const formSchema = z.object({
   firstName: z.string().min(2, {
@@ -51,6 +75,7 @@ const formSchema = z.object({
 export function NewApplicationForm() {
   const router = useRouter()
   const { toast } = useToast()
+  const { settings } = useSettings()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -204,7 +229,7 @@ export function NewApplicationForm() {
                 name="annualIncome"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Annual Income ($)</FormLabel>
+                    <FormLabel>Annual Income ({currencySymbols[settings.currency] || settings.currency})</FormLabel>
                     <FormControl>
                       <Input placeholder="50000" {...field} />
                     </FormControl>
@@ -220,7 +245,7 @@ export function NewApplicationForm() {
                 name="loanAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Loan Amount ($)</FormLabel>
+                    <FormLabel>Loan Amount ({currencySymbols[settings.currency] || settings.currency})</FormLabel>
                     <FormControl>
                       <Input placeholder="10000" {...field} />
                     </FormControl>

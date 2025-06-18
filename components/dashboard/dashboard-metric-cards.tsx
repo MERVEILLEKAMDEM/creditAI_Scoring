@@ -4,8 +4,33 @@ import { ArrowDown, ArrowUp, BarChart3, DollarSign, Users } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { useSettings } from "@/contexts/settings-context"
+
+const currencySymbols: Record<string, string> = {
+  XOF: "CFA",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  CNY: "¥",
+  INR: "₹",
+  AUD: "A$",
+  CAD: "C$",
+  CHF: "Fr",
+  HKD: "HK$",
+  SGD: "S$",
+  ZAR: "R",
+  BRL: "R$",
+  MXN: "$",
+  AED: "د.إ",
+  SAR: "﷼",
+  NGN: "₦",
+  KES: "KSh",
+  EGP: "E£",
+}
 
 export function DashboardMetricCards() {
+  const { settings } = useSettings()
   const metrics = [
     {
       title: "Total Applications",
@@ -19,7 +44,7 @@ export function DashboardMetricCards() {
     },
     {
       title: "Approved Amount",
-      value: "$4.2M",
+      value: `${currencySymbols[settings.currency] || settings.currency}4.2M`,
       icon: DollarSign,
       change: "+8.3%",
       changeDirection: "up",

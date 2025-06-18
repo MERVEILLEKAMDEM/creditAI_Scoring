@@ -52,9 +52,9 @@ export function SideNav({ className, ...props }: SideNavProps) {
   const pathname = usePathname()
 
   return (
-    <div className={cn("py-4", className)} {...props}>
+    <div className={cn("py-4 sticky top-0 h-screen bg-muted/40", className)} {...props}>
       <div className="px-4 py-2">
-        <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight">
+        <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight text-black">
           Navigation
         </h2>
         <div className="space-y-1">
@@ -62,7 +62,10 @@ export function SideNav({ className, ...props }: SideNavProps) {
             <Button
               key={item.href}
               variant={pathname === item.href ? "secondary" : "ghost"}
-              className="w-full justify-start"
+              className={cn(
+                "w-full justify-start",
+                pathname === item.href ? "bg-secondary text-secondary-foreground" : "hover:bg-secondary/50"
+              )}
               asChild
             >
               <Link href={item.href}>
@@ -75,4 +78,4 @@ export function SideNav({ className, ...props }: SideNavProps) {
       </div>
     </div>
   )
-} 
+}

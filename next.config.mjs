@@ -15,19 +15,15 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['@radix-ui/react-*', 'lucide-react'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     // Optimize webpack configuration
     config.optimization = {
       ...config.optimization,
       minimize: true,
     }
+
     return config
   },
-  allowedDevOrigins: [
-    '172.17.3.193', // Current dev origin from logs
-    'localhost',
-    '127.0.0.1'
-  ],
 }
 
 export default nextConfig
