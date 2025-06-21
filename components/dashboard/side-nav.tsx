@@ -11,6 +11,7 @@ import {
   Settings,
   Users,
   PlusCircle,
+  Download,
 } from "lucide-react"
 
 const items = [
@@ -33,6 +34,11 @@ const items = [
     title: "Analytics",
     href: "/dashboard/analytics",
     icon: BarChart3,
+  },
+  {
+    title: "Export",
+    href: "/dashboard/export",
+    icon: Download,
   },
   {
     title: "Users",
