@@ -1,10 +1,9 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState } from "react"
-import { useTheme } from "next-themes"
 
+// Note: Theme is now managed separately by next-themes
 type Settings = {
-  theme: 'light' | 'dark' | 'system'
   currency: string
   exportFormat: string
 }
@@ -15,7 +14,6 @@ type SettingsContextType = {
 }
 
 const defaultSettings: Settings = {
-  theme: "dark",
   currency: "XOF",
   exportFormat: "csv",
 }
@@ -23,53 +21,24 @@ const defaultSettings: Settings = {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const { setTheme, theme } = useTheme()
   const [settings, setSettings] = useState<Settings>(defaultSettings)
 
-  // Load settings and set initial theme
+  // Load settings from localStorage on mount
   useEffect(() => {
     try {
-      const savedSettings = localStorage.getItem("settings")
-      let currentSettings = defaultSettings
-      
+      const savedSettings = localStorage.getItem("app-settings")
       if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings)
-        currentSettings = { ...defaultSettings, ...parsedSettings, currency: 'XOF' }
-      } else {
-        currentSettings = { ...defaultSettings, currency: 'XOF' }
+        setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) })
       }
-      
-      setTheme(currentSettings.theme)
-      setSettings(currentSettings)
-      localStorage.setItem("settings", JSON.stringify(currentSettings))
-
     } catch (error) {
-      console.error("Error loading settings:", error)
-      setTheme('dark')
-      setSettings(defaultSettings)
+      console.error("Error loading app settings:", error)
     }
-  }, [setTheme])
-
-  // Watch for theme changes from next-themes
-  useEffect(() => {
-    if (theme && settings.theme !== theme) {
-      const updatedSettings: Settings = { ...settings, theme: theme as Settings['theme'] }
-      setSettings(updatedSettings)
-      localStorage.setItem("settings", JSON.stringify(updatedSettings))
-    }
-  }, [theme, settings.theme])
+  }, [])
 
   const updateSettings = (newSettings: Partial<Settings>) => {
     const updatedSettings = { ...settings, ...newSettings }
-    
-    // Update theme immediately
-    setTheme(updatedSettings.theme)
-    
-    // Save to localStorage
-    localStorage.setItem("settings", JSON.stringify(updatedSettings))
-    
-    // Update state
     setSettings(updatedSettings)
+    localStorage.setItem("app-settings", JSON.stringify(updatedSettings))
   }
 
   return (

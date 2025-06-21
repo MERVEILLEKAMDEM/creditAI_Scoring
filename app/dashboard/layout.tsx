@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { SideNav } from "@/components/dashboard/side-nav"
 import { TopNav } from "@/components/dashboard/top-nav"
+import { ErrorBoundary } from "react-error-boundary"
 
 export default function DashboardLayout({
   children,
@@ -45,7 +46,9 @@ export default function DashboardLayout({
           <SideNav className="w-64 hidden lg:block border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80" />
           <main className="flex-1 min-h-[calc(100vh-4rem)]">
             <div className="container p-6 lg:p-8">
-              {children}
+              <ErrorBoundary fallback={<div>Something went wrong in this section. Please try refreshing.</div>}>
+                {children}
+              </ErrorBoundary>
             </div>
           </main>
         </div>

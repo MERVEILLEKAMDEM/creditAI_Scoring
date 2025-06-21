@@ -29,8 +29,8 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
-          enableSystem={true}
-          disableTransitionOnChange={false}
+          enableSystem
+          disableTransitionOnChange
           storageKey="credit-risk-theme"
         >
           <SettingsProvider>
