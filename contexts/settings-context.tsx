@@ -30,19 +30,19 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const savedSettings = localStorage.getItem("settings")
+      let currentSettings = defaultSettings
+      
       if (savedSettings) {
         const parsedSettings = JSON.parse(savedSettings)
-        if (parsedSettings.theme && ['light', 'dark', 'system'].includes(parsedSettings.theme)) {
-          setTheme(parsedSettings.theme)
-          setSettings({ ...defaultSettings, ...parsedSettings })
-        } else {
-          setTheme('dark')
-          setSettings(defaultSettings)
-        }
+        currentSettings = { ...defaultSettings, ...parsedSettings, currency: 'XOF' }
       } else {
-        setTheme('dark')
-        setSettings(defaultSettings)
+        currentSettings = { ...defaultSettings, currency: 'XOF' }
       }
+      
+      setTheme(currentSettings.theme)
+      setSettings(currentSettings)
+      localStorage.setItem("settings", JSON.stringify(currentSettings))
+
     } catch (error) {
       console.error("Error loading settings:", error)
       setTheme('dark')
