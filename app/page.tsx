@@ -14,8 +14,8 @@ export default function Home() {
             <span className="text-xl font-bold text-primary">AI Credit Risk</span>
           </div>
           <nav className="flex items-center gap-4">
-            <Link href="#" className="text-base font-medium text-gray-700 hover:text-primary">Home</Link>
-            <Link href="#about" className="text-base font-medium text-gray-700 hover:text-primary">About</Link>
+            <Link href="/" className="text-base font-medium text-gray-700 hover:text-primary">Home</Link>
+            <Link href="/about" className="text-base font-medium text-gray-700 hover:text-primary">About</Link>
             <Link href="/login" className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition">Get Started</Link>
           </nav>
         </div>
@@ -127,8 +127,8 @@ export default function Home() {
           <div>
             <h4 className="font-bold mb-2">QUICK LINKS</h4>
             <ul className="space-y-1">
-              <li><Link href="#" className="hover:underline">Home</Link></li>
-              <li><Link href="#about" className="hover:underline">About</Link></li>
+              <li><Link href="/" className="hover:underline">Home</Link></li>
+              <li><Link href="/about" className="hover:underline">About</Link></li>
               <li><Link href="/dashboard" className="hover:underline">Dashboard</Link></li>
             </ul>
           </div>

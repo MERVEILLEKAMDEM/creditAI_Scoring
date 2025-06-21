@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "AI Credit Risk Analysis System",
   description: "Advanced machine learning powered credit scoring system",
-  generator: 'v0.dev',
+  
   icons: {
     icon: '/th.jpg',
   }

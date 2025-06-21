@@ -12,9 +12,15 @@ import {
   Users,
   PlusCircle,
   Download,
+  Globe,
 } from "lucide-react"
 
 const items = [
+  {
+    title: "Home",
+    href: "/",
+    icon: Globe,
+  },
   {
     title: "Overview",
     href: "/dashboard",
