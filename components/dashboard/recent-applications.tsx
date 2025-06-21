@@ -1,15 +1,19 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Eye } from "lucide-react"
+import { Prediction } from "@/lib/predictions"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useSettings } from "@/contexts/settings-context"
+
+interface RecentApplicationsProps {
+  predictions: Prediction[]
+}
 
 const currencySymbols: Record<string, string> = {
   XOF: "CFA",
@@ -34,76 +38,13 @@ const currencySymbols: Record<string, string> = {
   EGP: "E£",
 }
 
-type Application = {
-  id: string
-  applicant: string
-  creditScore: number
-  riskLevel: "Low" | "Medium" | "High"
-  amount: string
-  status: "Approved" | "Review" | "Declined"
-}
-
-export function RecentApplications() {
+export function RecentApplications({ predictions }: RecentApplicationsProps) {
   const { settings } = useSettings()
-  const [applications] = useState<Application[]>([
-    {
-      id: "APP001",
-      applicant: "John Smith",
-      creditScore: 785,
-      riskLevel: "Low",
-      amount: "50000",
-      status: "Approved",
-    },
-    {
-      id: "APP002",
-      applicant: "Sarah Johnson",
-      creditScore: 620,
-      riskLevel: "Medium",
-      amount: "25000",
-      status: "Review",
-    },
-    {
-      id: "APP003",
-      applicant: "Mike Wilson",
-      creditScore: 450,
-      riskLevel: "High",
-      amount: "30000",
-      status: "Declined",
-    },
-    {
-      id: "APP004",
-      applicant: "Emily Davis",
-      creditScore: 720,
-      riskLevel: "Low",
-      amount: "40000",
-      status: "Approved",
-    },
-    {
-      id: "APP005",
-      applicant: "David Brown",
-      creditScore: 580,
-      riskLevel: "Medium",
-      amount: "20000",
-      status: "Review",
-    },
-  ])
 
-  const getScoreColor = (score: number) => {
-    if (score >= 700) return "bg-green-500"
-    if (score >= 600) return "bg-amber-500"
-    return "bg-red-500"
-  }
-
-  const getScoreWidth = (score: number) => {
-    return `${Math.min(100, Math.max(0, (score / 850) * 100))}%`
-  }
-
-  const getRiskBadgeVariant = (risk: string) => {
+  const getRiskBadgeVariant = (risk: 'Low' | 'High') => {
     switch (risk) {
       case "Low":
         return "bg-green-100 text-green-800 hover:bg-green-100"
-      case "Medium":
-        return "bg-amber-100 text-amber-800 hover:bg-amber-100"
       case "High":
         return "bg-red-100 text-red-800 hover:bg-red-100"
       default:
@@ -111,14 +52,12 @@ export function RecentApplications() {
     }
   }
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "Approved":
-        return "bg-green-100 text-green-800 hover:bg-green-100"
-      case "Review":
-        return "bg-amber-100 text-amber-800 hover:bg-amber-100"
-      case "Declined":
-        return "bg-red-100 text-red-800 hover:bg-red-100"
+  const getStatusBadgeVariant = (risk: 'Low' | 'High') => {
+    switch (risk) {
+      case "Low":
+        return "bg-green-100 text-green-800 hover:bg-green-100" // Approved
+      case "High":
+        return "bg-red-100 text-red-800 hover:bg-red-100" // Declined
       default:
         return ""
     }
@@ -143,63 +82,62 @@ export function RecentApplications() {
       <div className="relative z-10">
         <Card className="bg-background/60 backdrop-blur-md border-primary/20">
       <CardHeader>
-        <CardTitle>Recent Applications</CardTitle>
-        <CardDescription>Latest credit applications processed by the AI system</CardDescription>
+        <CardTitle>Recent Predictions</CardTitle>
+        <CardDescription>Latest credit predictions processed by the AI system</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-                  <tr className="border-b border-primary/10">
-                <th className="pb-2 text-left font-medium">Application ID</th>
-                <th className="pb-2 text-left font-medium">Applicant</th>
-                <th className="pb-2 text-left font-medium">Credit Score</th>
-                <th className="pb-2 text-left font-medium">Risk Level</th>
-                <th className="pb-2 text-left font-medium">Amount</th>
-                <th className="pb-2 text-left font-medium">Status</th>
-                <th className="pb-2 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {applications.map((app) => (
-                    <tr key={app.id} className="border-b border-primary/10">
-                  <td className="py-3">{app.id}</td>
-                  <td className="py-3">{app.applicant}</td>
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <span>{app.creditScore}</span>
-                      <div className="h-2 w-24 rounded-full bg-gray-200">
-                        <div
-                          className={cn("h-full rounded-full", getScoreColor(app.creditScore))}
-                          style={{ width: getScoreWidth(app.creditScore) }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3">
-                    <Badge variant="outline" className={cn(getRiskBadgeVariant(app.riskLevel))}>
-                      {app.riskLevel}
-                    </Badge>
-                  </td>
-                  <td className="py-3">{currencySymbols[settings.currency] || settings.currency}{parseInt(app.amount).toLocaleString()}</td>
-                  <td className="py-3">
-                    <Badge variant="outline" className={cn(getStatusBadgeVariant(app.status))}>
-                      {app.status}
-                    </Badge>
-                  </td>
-                  <td className="py-3">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/applications/${app.id}`}>
-                        <Eye className="mr-1 h-4 w-4" />
-                        View Details
-                      </Link>
-                    </Button>
-                  </td>
+        {predictions.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            No recent predictions. Submit a new application to see results here.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                    <tr className="border-b border-primary/10">
+                  <th className="pb-2 text-left font-medium">Prediction ID</th>
+                  <th className="pb-2 text-left font-medium">Applicant</th>
+                  <th className="pb-2 text-left font-medium">Risk Level</th>
+                  <th className="pb-2 text-left font-medium">Amount</th>
+                  <th className="pb-2 text-left font-medium">Status</th>
+                  <th className="pb-2 text-left font-medium">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {predictions.map((p) => {
+                  const riskLevel = p.result.prediction === 0 ? 'Low' : 'High'
+                  const status = riskLevel === 'Low' ? 'Approved' : 'Declined'
+                  
+                  return (
+                    <tr key={p.id} className="border-b border-primary/10">
+                      <td className="py-3 font-mono text-xs">{p.id.substring(0, 8)}...</td>
+                      <td className="py-3">Applicant (Age: {p.input.age})</td>
+                      <td className="py-3">
+                        <Badge variant="outline" className={cn(getRiskBadgeVariant(riskLevel))}>
+                          {riskLevel} Risk
+                        </Badge>
+                      </td>
+                      <td className="py-3">{currencySymbols[settings.currency] || settings.currency}{p.input.loan_amount.toLocaleString()}</td>
+                      <td className="py-3">
+                        <Badge variant="outline" className={cn(getStatusBadgeVariant(riskLevel))}>
+                          {status}
+                        </Badge>
+                      </td>
+                      <td className="py-3">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/dashboard/applications`}>
+                            <Eye className="mr-1 h-4 w-4" />
+                            View All
+                          </Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </CardContent>
     </Card>
       </div>

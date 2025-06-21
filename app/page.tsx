@@ -21,12 +21,16 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section with new background image */}
-      <section className="relative flex flex-col items-center justify-center text-center min-h-[60vh] py-20">
-        <div className="absolute inset-0 -z-10">
-          <Image src="/coins-jar.jpg" alt="Background" fill className="object-cover w-full h-full" />
-          <div className="absolute inset-0 bg-black/60" />
-        </div>
+      {/* Hero Section with CSS background-image fallback */}
+      <section
+        className="relative flex flex-col items-center justify-center text-center min-h-[60vh] py-20"
+        style={{
+          backgroundImage: "url('/coins-jar.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 -z-10 bg-black/60" />
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-white">
           Artificial Intelligence in the <span className="text-blue-400">Analysis of Credit Risk</span>
         </h1>
@@ -77,20 +81,20 @@ export default function Home() {
       </section>
 
       {/* For Financial Institutions / For the Population */}
-      <section className="py-12 bg-gradient-to-r from-blue-600 to-purple-500 text-white">
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"> <span>↗️</span> For Financial Institutions</h3>
-            <ul className="list-disc list-inside space-y-2 text-base">
+      <section className="py-12 bg-gradient-to-r from-blue-600 to-purple-500 text-white flex items-center justify-center">
+        <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-16 text-center">
+          <div className="flex-1">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2 justify-center"> <span>↗️</span> For Financial Institutions</h3>
+            <ul className="list-disc list-inside space-y-2 text-base mx-auto inline-block text-left">
               <li>Enhanced risk management capabilities</li>
               <li>Improved lending decision accuracy</li>
               <li>Reduced default rates and bad debt</li>
               <li>Automated compliance monitoring</li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"> <span>👥</span> For the Population</h3>
-            <ul className="list-disc list-inside space-y-2 text-base">
+          <div className="flex-1">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2 justify-center"> <span>👥</span> For the Population</h3>
+            <ul className="list-disc list-inside space-y-2 text-base mx-auto inline-block text-left">
               <li>Increased access to credit</li>
               <li>Economic empowerment opportunities</li>
               <li>Protection against over-indebtedness</li>
@@ -140,7 +144,7 @@ export default function Home() {
         </div>
         <div className="text-center mt-8 text-xs text-gray-400">
           <div className="mb-1">AI Credit Risk Analysis evaluates a borrower's likelihood of defaulting on a loan, helping lenders make informed financial decisions.</div>
-          <div className="mb-1 font-semibold">DEVELOPED by MERVEILLE KAMDEM | Cloud Computing Department</div>
+          <div className="mb-1 font-semibold">DEVELOPED by MERVEILLE KAMDEM | Cloud Computing / B.TECH 3 CSE</div>
           <div>© {currentYear} Merveille Kamdem Meguia / Credit Risk Analysis. All rights reserved.</div>
         </div>
       </footer>
