@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast"
 import { Separator } from "@/components/ui/separator"
 import { useSettings } from "@/contexts/settings-context"
+import { t } from "@/lib/utils"
 
 const formSchema = z.object({
   currency: z.string({
@@ -23,6 +24,9 @@ const formSchema = z.object({
   }),
   theme: z.enum(['light', 'dark', 'system'], {
     required_error: "Please select a theme.",
+  }),
+  language: z.enum(['en', 'fr'], {
+    required_error: "Please select a language.",
   }),
 })
 
@@ -49,11 +53,17 @@ const currencies = [
   { value: "EGP", label: "EGP (Egyptian Pound)" },
 ]
 
+const languages = [
+  { value: "en", label: "English" },
+  { value: "fr", label: "Français" },
+]
+
 export function SettingsForm() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const { theme, setTheme } = useTheme()
   const { settings, updateSettings } = useSettings()
+  const lang = settings.language || 'en'
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,6 +71,7 @@ export function SettingsForm() {
       currency: settings.currency || "XOF",
       exportFormat: settings.exportFormat || "csv",
       theme: settings.theme || "system",
+      language: settings.language || "en",
     },
   })
 
@@ -70,6 +81,7 @@ export function SettingsForm() {
       currency: settings.currency || "XOF",
       exportFormat: settings.exportFormat || "csv",
       theme: settings.theme || "system",
+      language: settings.language || "en",
     })
   }, [settings, form])
 
@@ -85,9 +97,14 @@ export function SettingsForm() {
       localStorage.removeItem('settings')
       localStorage.setItem('settings', JSON.stringify(data))
       
+      // Update language in context
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('language', data.language)
+      }
+      
       toast({
-        title: "Theme updated",
-        description: `Switched to ${data.theme} theme`,
+        title: "Settings updated",
+        description: `Preferences saved successfully!`,
       })
       
       return data
@@ -105,17 +122,17 @@ export function SettingsForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Preferences</CardTitle>
-        <CardDescription>Manage your application preferences and settings.</CardDescription>
+        <CardTitle>{t('preferences', lang)}</CardTitle>
+        <CardDescription>{t('configure', lang)}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="space-y-8">
               <div>
-                <h3 className="text-lg font-medium">Display</h3>
+                <h3 className="text-lg font-medium">{t('display', lang)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Customize the appearance of the application.
+                  {lang === 'fr' ? "Personnalisez l'apparence de l'application." : "Customize the appearance of the application."}
                 </p>
                 <Separator className="my-4" />
                 <div className="space-y-4">
@@ -124,21 +141,48 @@ export function SettingsForm() {
                     name="theme"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Theme</FormLabel>
+                        <FormLabel>{t('theme', lang) || 'Theme'}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select theme" />
+                              <SelectValue placeholder={lang === 'fr' ? 'Sélectionner le thème' : 'Select theme'} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
-                            <SelectItem value="system">System</SelectItem>
+                            <SelectItem value="light">{lang === 'fr' ? 'Clair' : 'Light'}</SelectItem>
+                            <SelectItem value="dark">{lang === 'fr' ? 'Sombre' : 'Dark'}</SelectItem>
+                            <SelectItem value="system">{lang === 'fr' ? 'Système' : 'System'}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          Select your preferred color theme.
+                          {lang === 'fr' ? "Sélectionnez votre thème de couleur préféré." : "Select your preferred color theme."}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('language', lang)}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('select_language', lang)} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {languages.map((langOpt) => (
+                              <SelectItem key={langOpt.value} value={langOpt.value}>
+                                {langOpt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          {t('select_language', lang)}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -148,9 +192,9 @@ export function SettingsForm() {
               </div>
 
               <div>
-                <h3 className="text-lg font-medium">Regional</h3>
+                <h3 className="text-lg font-medium">{t('regional', lang)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Configure regional settings and preferences.
+                  {lang === 'fr' ? "Configurez les paramètres régionaux et les préférences." : "Configure regional settings and preferences."}
                 </p>
                 <Separator className="my-4" />
                 <div className="space-y-4">
@@ -159,11 +203,11 @@ export function SettingsForm() {
                     name="currency"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Currency</FormLabel>
+                        <FormLabel>{lang === 'fr' ? 'Devise' : 'Currency'}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a currency" />
+                              <SelectValue placeholder={lang === 'fr' ? 'Sélectionner une devise' : 'Select a currency'} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -175,7 +219,7 @@ export function SettingsForm() {
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          Choose your preferred currency for displaying monetary values.
+                          {lang === 'fr' ? "Choisissez votre devise préférée pour l'affichage des valeurs monétaires." : "Choose your preferred currency for displaying monetary values."}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -185,9 +229,9 @@ export function SettingsForm() {
               </div>
 
               <div>
-                <h3 className="text-lg font-medium">Export</h3>
+                <h3 className="text-lg font-medium">{t('export', lang)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Configure export settings and formats.
+                  {lang === 'fr' ? "Configurez les paramètres et formats d'exportation." : "Configure export settings and formats."}
                 </p>
                 <Separator className="my-4" />
                 <div className="space-y-4">
@@ -196,11 +240,11 @@ export function SettingsForm() {
                     name="exportFormat"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Export Format</FormLabel>
+                        <FormLabel>{lang === 'fr' ? 'Format d\'exportation' : 'Export Format'}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select export format" />
+                              <SelectValue placeholder={lang === 'fr' ? 'Sélectionner le format' : 'Select export format'} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -210,7 +254,7 @@ export function SettingsForm() {
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          Choose your preferred format for exporting reports.
+                          {lang === 'fr' ? "Choisissez votre format préféré pour l'exportation des rapports." : "Choose your preferred format for exporting reports."}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -221,7 +265,7 @@ export function SettingsForm() {
             </div>
 
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save changes"}
+              {isLoading ? (lang === 'fr' ? 'Enregistrement...' : 'Saving...') : t('save', lang)}
             </Button>
           </form>
         </Form>

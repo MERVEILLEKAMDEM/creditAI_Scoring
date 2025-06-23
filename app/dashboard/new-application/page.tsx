@@ -138,7 +138,7 @@ export default function NewApplicationPage() {
             <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 py-3 rounded-xl shadow-lg text-lg transition-all">
               {loading ? 'Predicting...' : 'Assess Credit Risk'}
             </button>
-          </div>
+      </div>
         </form>
         {loading && <div className="text-center mt-6 text-lg">Loading...</div>}
         {result && !result.error && (
@@ -157,14 +157,14 @@ export default function NewApplicationPage() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+      </div>
             <h4 className="font-semibold mb-3">Input Summary</h4>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 text-base">
               {Object.entries(form).map(([key, value]) => (
                 <li key={key}><span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> {value.toString()}</li>
               ))}
             </ul>
-          </div>
+        </div>
         )}
         {result && result.error && (
           <div className="text-red-600 text-center mt-6 text-lg">{result.error}</div>

@@ -91,19 +91,19 @@ export function RecentApplications({ predictions }: RecentApplicationsProps) {
             No recent predictions. Submit a new application to see results here.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                    <tr className="border-b border-primary/10">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+                  <tr className="border-b border-primary/10">
                   <th className="pb-2 text-left font-medium">Prediction ID</th>
-                  <th className="pb-2 text-left font-medium">Applicant</th>
-                  <th className="pb-2 text-left font-medium">Risk Level</th>
-                  <th className="pb-2 text-left font-medium">Amount</th>
-                  <th className="pb-2 text-left font-medium">Status</th>
-                  <th className="pb-2 text-left font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+                <th className="pb-2 text-left font-medium">Applicant</th>
+                <th className="pb-2 text-left font-medium">Risk Level</th>
+                <th className="pb-2 text-left font-medium">Amount</th>
+                <th className="pb-2 text-left font-medium">Status</th>
+                <th className="pb-2 text-left font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
                 {predictions.map((p) => {
                   const riskLevel = p.result.prediction === 0 ? 'Low' : 'High'
                   const status = riskLevel === 'Low' ? 'Approved' : 'Declined'
@@ -112,31 +112,31 @@ export function RecentApplications({ predictions }: RecentApplicationsProps) {
                     <tr key={p.id} className="border-b border-primary/10">
                       <td className="py-3 font-mono text-xs">{p.id.substring(0, 8)}...</td>
                       <td className="py-3">Applicant (Age: {p.input.age})</td>
-                      <td className="py-3">
+                  <td className="py-3">
                         <Badge variant="outline" className={cn(getRiskBadgeVariant(riskLevel))}>
                           {riskLevel} Risk
-                        </Badge>
-                      </td>
+                    </Badge>
+                  </td>
                       <td className="py-3">{currencySymbols[settings.currency] || settings.currency}{p.input.loan_amount.toLocaleString()}</td>
-                      <td className="py-3">
+                  <td className="py-3">
                         <Badge variant="outline" className={cn(getStatusBadgeVariant(riskLevel))}>
                           {status}
-                        </Badge>
-                      </td>
-                      <td className="py-3">
-                        <Button variant="ghost" size="sm" asChild>
+                    </Badge>
+                  </td>
+                  <td className="py-3">
+                    <Button variant="ghost" size="sm" asChild>
                           <Link href={`/dashboard/applications`}>
-                            <Eye className="mr-1 h-4 w-4" />
+                        <Eye className="mr-1 h-4 w-4" />
                             View All
-                          </Link>
-                        </Button>
-                      </td>
-                    </tr>
+                      </Link>
+                    </Button>
+                  </td>
+                </tr>
                   )
                 })}
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
+        </div>
         )}
       </CardContent>
     </Card>

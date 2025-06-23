@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useSettings } from '@/contexts/settings-context'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,9 +13,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+const currencySymbols = {
+  XOF: 'CFA',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  CNY: '¥',
+  INR: '₹',
+  AUD: 'A$',
+  CAD: 'C$',
+  CHF: 'Fr',
+  HKD: 'HK$',
+  SGD: 'S$',
+  ZAR: 'R',
+  BRL: 'R$',
+  MXN: '$',
+  AED: 'د.إ',
+  SAR: '﷼',
+  NGN: '₦',
+  KES: 'KSh',
+  EGP: 'E£',
+};
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
+  const { settings } = useSettings()
 
   // After mounting, we have access to the theme
   React.useEffect(() => setMounted(true), [])

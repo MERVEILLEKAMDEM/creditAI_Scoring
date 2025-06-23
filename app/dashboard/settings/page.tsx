@@ -1,13 +1,20 @@
+"use client"
+
 import type { Metadata } from "next"
 import Image from "next/image"
 import { SettingsForm } from "@/components/dashboard/settings-form"
-
-export const metadata: Metadata = {
-  title: "Settings | AI Credit Risk Analysis System",
-  description: "Configure system settings and preferences",
-}
+import { useSettings } from "@/contexts/settings-context"
+import { t } from "@/lib/utils"
+import { useEffect, useState } from "react"
 
 export default function SettingsPage() {
+  const { settings } = useSettings()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  const lang = settings.language || 'en'
+  if (!mounted) {
+    return null // or a loading spinner
+  } 
   return (
     <div className="relative space-y-6">
       {/* Background Image */}
@@ -28,8 +35,8 @@ export default function SettingsPage() {
         <div className="rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-              <p className="text-muted-foreground">Configure system settings and preferences</p>
+              <h1 className="text-3xl font-bold tracking-tight">{t('settings', lang)}</h1>
+              <p className="text-muted-foreground">{t('configure', lang)}</p>
             </div>
             <div className="flex-shrink-0">
               <Image
@@ -46,7 +53,7 @@ export default function SettingsPage() {
         <div className="bg-background/60 backdrop-blur-sm rounded-lg p-6">
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold mb-4">Display</h2>
+              <h2 className="text-xl font-semibold mb-4">{t('display', lang)}</h2>
               <SettingsForm />
             </div>
             

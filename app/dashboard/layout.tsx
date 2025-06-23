@@ -47,7 +47,7 @@ export default function DashboardLayout({
           <main className="flex-1 min-h-[calc(100vh-4rem)]">
             <div className="container p-6 lg:p-8">
               <ErrorBoundary fallback={<div>Something went wrong in this section. Please try refreshing.</div>}>
-                {children}
+              {children}
               </ErrorBoundary>
             </div>
           </main>

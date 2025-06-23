@@ -143,7 +143,7 @@ export default function ApplicationsPage() {
               ))}
             </div>
           )}
-        </div>
+      </div>
       </div>
     </div>
   )

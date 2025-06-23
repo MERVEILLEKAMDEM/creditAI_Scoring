@@ -3,25 +3,40 @@
 import React, { createContext, useContext, useEffect, useState } from "react"
 
 // Note: Theme is now managed separately by next-themes
-type Settings = {
+export interface Settings {
   currency: string
   exportFormat: string
+  theme: string
+  language?: string
 }
 
 type SettingsContextType = {
   settings: Settings
   updateSettings: (newSettings: Partial<Settings>) => void
+  setLanguage: (lang: string) => void
 }
 
 const defaultSettings: Settings = {
   currency: "XOF",
   exportFormat: "csv",
+  theme: "system",
+  language: "en",
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
+export const SettingsContext = createContext<SettingsContextType>({
+  settings: defaultSettings,
+  updateSettings: async () => {},
+  setLanguage: () => {},
+})
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [settings, setSettings] = useState<Settings>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("settings")
+      if (stored) return { ...defaultSettings, ...JSON.parse(stored) }
+    }
+    return defaultSettings
+  })
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -35,14 +50,24 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const updateSettings = (newSettings: Partial<Settings>) => {
-    const updatedSettings = { ...settings, ...newSettings }
-    setSettings(updatedSettings)
-    localStorage.setItem("app-settings", JSON.stringify(updatedSettings))
+  const updateSettings = async (newSettings: Partial<Settings>) => {
+    setSettings((prev) => {
+      const updated = { ...prev, ...newSettings }
+      localStorage.setItem("settings", JSON.stringify(updated))
+      return updated
+    })
+  }
+
+  const setLanguage = (lang: string) => {
+    setSettings((prev) => {
+      const updated = { ...prev, language: lang }
+      localStorage.setItem("settings", JSON.stringify(updated))
+      return updated
+    })
   }
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSettings, setLanguage }}>
       {children}
     </SettingsContext.Provider>
   )

@@ -229,9 +229,20 @@ export function NewApplicationForm() {
                 name="annualIncome"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Annual Income ({currencySymbols[settings.currency] || settings.currency})</FormLabel>
+                    <FormLabel>
+                      {`Annual Income (${currencySymbols[settings.currency] || settings.currency})`}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="50000" {...field} />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 select-none">
+                          {currencySymbols[settings.currency] || settings.currency}
+                        </span>
+                        <Input
+                          placeholder="50000"
+                          {...field}
+                          className="pl-10"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -245,9 +256,20 @@ export function NewApplicationForm() {
                 name="loanAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Loan Amount ({currencySymbols[settings.currency] || settings.currency})</FormLabel>
+                    <FormLabel>
+                      {`Loan Amount (${currencySymbols[settings.currency] || settings.currency})`}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="10000" {...field} />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 select-none">
+                          {currencySymbols[settings.currency] || settings.currency}
+                        </span>
+                        <Input
+                          placeholder="10000"
+                          {...field}
+                          className="pl-10"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

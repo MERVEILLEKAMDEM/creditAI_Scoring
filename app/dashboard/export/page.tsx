@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -18,40 +18,105 @@ export default function ExportPage() {
   const [predictionsFormat, setPredictionsFormat] = useState<ExportFormat>("csv")
   const [analyticsFormat, setAnalyticsFormat] = useState<ExportFormat>("json")
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [allChecked, setAllChecked] = useState(false)
+  const [predictions, setPredictions] = useState<Prediction[]>([])
+  const [analyticsAllChecked, setAnalyticsAllChecked] = useState(false)
+  const [analyticsSelectedIds, setAnalyticsSelectedIds] = useState<string[]>([])
 
-  const exportToFile = (content: string, mimeType: string, filename: string) => {
-    const blob = new Blob([content], { type: mimeType })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
-    window.URL.revokeObjectURL(url)
+  useEffect(() => {
+    setPredictions(predictionStorage.getAllPredictions())
+  }, [])
+
+  const handleSelectAll = () => {
+    if (allChecked) {
+      setSelectedIds([])
+      setAllChecked(false)
+    } else {
+      setSelectedIds(predictions.map(p => p.id))
+      setAllChecked(true)
+    }
   }
 
-  const generateExplanation = (prediction: Prediction): string => {
-    const isHighRisk = prediction.result.prediction === 1
-    const prob = isHighRisk 
-      ? (prediction.result.probability_bad * 100).toFixed(1)
-      : (prediction.result.probability_good * 100).toFixed(1)
+  const handleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+  }
 
-    if (isHighRisk) {
-      return `Declined (High Risk): The model predicts a ${prob}% probability of default. Key contributing factors may include high loan amount relative to income, poor credit history, or unfavorable terms.`
+  const handleSingleExport = (prediction: Prediction) => {
+    setIsLoading(true)
+    const data = [{
+      'ID': prediction.id.substring(0, 8),
+      'Date': new Date(prediction.timestamp).toISOString().split('T')[0],
+      'Age': prediction.input.age,
+      'Income': prediction.input.income,
+      'Loan Amount': prediction.input.loan_amount,
+      'Int. Rate': prediction.input.interest_rate,
+      'Turnover': prediction.input.turnover,
+      'Cust. Tenure': prediction.input.customer_tenure,
+      'Late Payments': prediction.input.num_late_payments_current,
+      'Unpaid Amt': prediction.input.unpaid_amount,
+      'Industry': prediction.input.industry_sector,
+      'Credit Type': prediction.input.credit_type,
+      'Guarantee': prediction.input.has_guarantee ? 'Yes' : 'No',
+      'Guarantee Type': prediction.input.guarantee_type,
+      'Repay Freq.': prediction.input.repayment_frequency,
+      'Risk': prediction.result.prediction === 1 ? 'High' : 'Low',
+      'P(Good)': prediction.result.probability_good.toFixed(3),
+      'P(Bad)': prediction.result.probability_bad.toFixed(3),
+      'Explanation': generateExplanation(prediction)
+    }]
+    if (predictionsFormat === "csv") {
+      const headers = Object.keys(data[0]).join(',')
+      const rows = data.map(row => Object.values(row).map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+      const csvContent = [headers, ...rows].join('\n')
+      exportToFile(csvContent, 'text/csv;charset=utf-8;', `prediction_${prediction.id}.csv`)
+    } else if (predictionsFormat === "json") {
+      const jsonContent = JSON.stringify(data, null, 2)
+      exportToFile(jsonContent, 'application/json', `prediction_${prediction.id}.json`)
+    } else if (predictionsFormat === "pdf") {
+      const doc = new jsPDF({ orientation: "landscape" })
+      doc.text("Prediction Data", 14, 15)
+      doc.setFontSize(8)
+      doc.text(`Exported on: ${new Date().toLocaleString()}`, 14, 20)
+      autoTable(doc, {
+        head: [Object.keys(data[0])],
+        body: data.map(row => Object.values(row)),
+        startY: 25,
+        styles: { fontSize: 6.5, cellPadding: 1.5, overflow: 'linebreak' },
+        headStyles: { fontSize: 7, fontStyle: 'bold', fillColor: '#3B82F6' },
+        columnStyles: {
+          'Explanation': { cellWidth: 60 },
+          'ID': { cellWidth: 18 },
+          'Date': { cellWidth: 18 },
+          'Age': { cellWidth: 10 },
+          'P(Good)': { cellWidth: 15 },
+          'P(Bad)': { cellWidth: 15 },
+          'Risk': { cellWidth: 10 },
+        },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages()
+          doc.setFontSize(8)
+          doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
+        }
+      })
+      doc.save(`prediction_${prediction.id}.pdf`)
     }
-    return `Approved (Low Risk): The model predicts a ${prob}% probability of successful repayment. The applicant's financial profile meets the criteria for approval.`
+    setIsLoading(false)
   }
 
   const handlePredictionsExport = () => {
     setIsLoading(true)
-    const predictions = predictionStorage.getAllPredictions()
-
-    if (predictions.length === 0) {
+    const allPredictions = predictionStorage.getAllPredictions()
+    let filtered = allPredictions
+    if (selectedIds.length > 0) {
+      filtered = allPredictions.filter(p => selectedIds.includes(p.id))
+    }
+    if (filtered.length === 0) {
       alert("No prediction data to export.")
       setIsLoading(false)
       return
     }
-
-    const data = predictions.map(p => ({
+    const data = filtered.map(p => ({
       'ID': p.id.substring(0, 8),
       'Date': new Date(p.timestamp).toISOString().split('T')[0],
       'Age': p.input.age,
@@ -83,11 +148,9 @@ export default function ExportPage() {
       exportToFile(jsonContent, 'application/json', `predictions_${new Date().toISOString()}.json`)
     } else if (predictionsFormat === "pdf") {
       const doc = new jsPDF({ orientation: "landscape" })
-      
       doc.text("All Predictions Data", 14, 15)
       doc.setFontSize(8)
       doc.text(`Exported on: ${new Date().toLocaleString()}`, 14, 20)
-
       autoTable(doc, {
         head: [Object.keys(data[0])],
         body: data.map(row => Object.values(row)),
@@ -104,15 +167,36 @@ export default function ExportPage() {
           'Risk': { cellWidth: 10 },
         },
         didDrawPage: (data) => {
-            // Footer
-            const pageCount = doc.internal.getNumberOfPages()
-            doc.setFontSize(8)
-            doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
+          const pageCount = doc.internal.getNumberOfPages()
+          doc.setFontSize(8)
+          doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
         }
       })
       doc.save(`predictions_${new Date().toISOString()}.pdf`)
     }
     setIsLoading(false)
+  }
+
+  const exportToFile = (content: string, mimeType: string, filename: string) => {
+    const blob = new Blob([content], { type: mimeType })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
+
+  const generateExplanation = (prediction: Prediction): string => {
+    const isHighRisk = prediction.result.prediction === 1
+    const prob = isHighRisk 
+      ? (prediction.result.probability_bad * 100).toFixed(1)
+      : (prediction.result.probability_good * 100).toFixed(1)
+
+    if (isHighRisk) {
+      return `Declined (High Risk): The model predicts a ${prob}% probability of default. Key contributing factors may include high loan amount relative to income, poor credit history, or unfavorable terms.`
+    }
+    return `Approved (Low Risk): The model predicts a ${prob}% probability of successful repayment. The applicant's financial profile meets the criteria for approval.`
   }
 
   const handleAnalyticsExport = () => {
@@ -179,6 +263,82 @@ export default function ExportPage() {
     setIsLoading(false)
   }
 
+  const handleAnalyticsSelectAll = () => {
+    if (analyticsAllChecked) {
+      setAnalyticsSelectedIds([])
+      setAnalyticsAllChecked(false)
+    } else {
+      setAnalyticsSelectedIds(predictions.map(p => p.id))
+      setAnalyticsAllChecked(true)
+    }
+  }
+
+  const handleAnalyticsSelect = (id: string) => {
+    setAnalyticsSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+  }
+
+  const handleSingleAnalyticsExport = (prediction: Prediction) => {
+    setIsLoading(true)
+    const data = [{
+      'ID': prediction.id.substring(0, 8),
+      'Date': new Date(prediction.timestamp).toISOString().split('T')[0],
+      'Age': prediction.input.age,
+      'Income': prediction.input.income,
+      'Loan Amount': prediction.input.loan_amount,
+      'Int. Rate': prediction.input.interest_rate,
+      'Turnover': prediction.input.turnover,
+      'Cust. Tenure': prediction.input.customer_tenure,
+      'Late Payments': prediction.input.num_late_payments_current,
+      'Unpaid Amt': prediction.input.unpaid_amount,
+      'Industry': prediction.input.industry_sector,
+      'Credit Type': prediction.input.credit_type,
+      'Guarantee': prediction.input.has_guarantee ? 'Yes' : 'No',
+      'Guarantee Type': prediction.input.guarantee_type,
+      'Repay Freq.': prediction.input.repayment_frequency,
+      'Risk': prediction.result.prediction === 1 ? 'High' : 'Low',
+      'P(Good)': prediction.result.probability_good.toFixed(3),
+      'P(Bad)': prediction.result.probability_bad.toFixed(3),
+      'Explanation': generateExplanation(prediction)
+    }]
+    if (analyticsFormat === "csv") {
+      const headers = Object.keys(data[0]).join(',')
+      const rows = data.map(row => Object.values(row).map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+      const csvContent = [headers, ...rows].join('\n')
+      exportToFile(csvContent, 'text/csv;charset=utf-8;', `analytics_${prediction.id}.csv`)
+    } else if (analyticsFormat === "json") {
+      const jsonContent = JSON.stringify(data, null, 2)
+      exportToFile(jsonContent, 'application/json', `analytics_${prediction.id}.json`)
+    } else if (analyticsFormat === "pdf") {
+      const doc = new jsPDF({ orientation: "landscape" })
+      doc.text("Prediction Data", 14, 15)
+      doc.setFontSize(8)
+      doc.text(`Exported on: ${new Date().toLocaleString()}`, 14, 20)
+      autoTable(doc, {
+        head: [Object.keys(data[0])],
+        body: data.map(row => Object.values(row)),
+        startY: 25,
+        styles: { fontSize: 6.5, cellPadding: 1.5, overflow: 'linebreak' },
+        headStyles: { fontSize: 7, fontStyle: 'bold', fillColor: '#3B82F6' },
+        columnStyles: {
+          'Explanation': { cellWidth: 60 },
+          'ID': { cellWidth: 18 },
+          'Date': { cellWidth: 18 },
+          'Age': { cellWidth: 10 },
+          'P(Good)': { cellWidth: 15 },
+          'P(Bad)': { cellWidth: 15 },
+          'Risk': { cellWidth: 10 },
+        },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages()
+          doc.setFontSize(8)
+          doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10)
+        }
+      })
+      doc.save(`analytics_${prediction.id}.pdf`)
+    }
+    setIsLoading(false)
+  }
+
   return (
     <div className="flex-1 space-y-8 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -209,9 +369,23 @@ export default function ExportPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="max-h-64 overflow-y-auto border rounded p-2 mb-2">
+              <div className="flex items-center mb-2">
+                <input type="checkbox" checked={allChecked} onChange={handleSelectAll} className="mr-2" />
+                <span className="font-medium">Select All</span>
+              </div>
+              {predictions.length === 0 && <div className="text-muted-foreground text-sm">No predictions available.</div>}
+              {predictions.map(p => (
+                <div key={p.id} className="flex items-center border-b py-1">
+                  <input type="checkbox" checked={selectedIds.includes(p.id)} onChange={() => handleSelect(p.id)} className="mr-2" />
+                  <span className="flex-1 text-xs">{p.id.substring(0,8)} | {new Date(p.timestamp).toLocaleString()} | {p.input.loan_amount} | {p.result.prediction === 1 ? 'High' : 'Low'}</span>
+                  <Button size="sm" variant="outline" className="ml-2" onClick={() => handleSingleExport(p)} disabled={isLoading}>Export</Button>
+                </div>
+              ))}
+            </div>
             <Button className="w-full" onClick={handlePredictionsExport} disabled={isLoading}>
               <Download className="mr-2 h-4 w-4" />
-              {isLoading ? 'Exporting...' : `Export as ${predictionsFormat.toUpperCase()}`}
+              {isLoading ? 'Exporting...' : selectedIds.length > 0 ? `Export Selected (${selectedIds.length})` : `Export All as ${predictionsFormat.toUpperCase()}`}
             </Button>
           </CardContent>
         </Card>
@@ -223,7 +397,7 @@ export default function ExportPage() {
               <div>
                 <CardTitle>Analytics Report</CardTitle>
                 <CardDescription>Export a summary report of the overall prediction analytics.</CardDescription>
-              </div>
+            </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -240,9 +414,23 @@ export default function ExportPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="max-h-64 overflow-y-auto border rounded p-2 mb-2">
+              <div className="flex items-center mb-2">
+                <input type="checkbox" checked={analyticsAllChecked} onChange={handleAnalyticsSelectAll} className="mr-2" />
+                <span className="font-medium">Select All</span>
+              </div>
+              {predictions.length === 0 && <div className="text-muted-foreground text-sm">No predictions available.</div>}
+              {predictions.map(p => (
+                <div key={p.id} className="flex items-center border-b py-1">
+                  <input type="checkbox" checked={analyticsSelectedIds.includes(p.id)} onChange={() => handleAnalyticsSelect(p.id)} className="mr-2" />
+                  <span className="flex-1 text-xs">{p.id.substring(0,8)} | {new Date(p.timestamp).toLocaleString()} | {p.input.loan_amount} | {p.result.prediction === 1 ? 'High' : 'Low'}</span>
+                  <Button size="sm" variant="outline" className="ml-2" onClick={() => handleSingleAnalyticsExport(p)} disabled={isLoading}>Export</Button>
+                </div>
+              ))}
+            </div>
             <Button className="w-full" onClick={handleAnalyticsExport} disabled={isLoading}>
               <Download className="mr-2 h-4 w-4" />
-              {isLoading ? 'Exporting...' : `Export as ${analyticsFormat.toUpperCase()}`}
+              {isLoading ? 'Exporting...' : analyticsSelectedIds.length > 0 ? `Export Selected (${analyticsSelectedIds.length})` : `Export All as ${analyticsFormat.toUpperCase()}`}
             </Button>
           </CardContent>
         </Card>
