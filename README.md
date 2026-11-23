@@ -1,21 +1,48 @@
-# AI-Powered Credit Risk Analysis System
+# 💳 CreditAI Scoring – analyse du risque de crédit par IA
 
-A comprehensive credit risk analysis system with AI-powered scoring and PostgreSQL database integration.
+**Application full-stack qui évalue le risque de défaut d'un demandeur de crédit** : un modèle de machine learning entraîné sur ~100 000 dossiers, une API de scoring et un tableau de bord sécurisé pour les analystes crédit.
 
-## Features
+## Ce que fait l'application
 
-- 🔐 **Secure Authentication** - Email and password login with JWT tokens
-- 🤖 **AI Credit Scoring** - Automated risk assessment and scoring
-- 📊 **Interactive Dashboard** - Real-time analytics and visualizations
-- 🗄️ **PostgreSQL Database** - Robust data storage and management
-- 📱 **Responsive Design** - Works on all devices
-- 🔒 **Secure Sessions** - JWT tokens with bcrypt password hashing
+- **Score de risque instantané** : l'analyste saisit un dossier (revenus, montant, taux, retards de paiement, impayés, secteur, type de crédit, garanties) et obtient une probabilité de défaut.
+- **Tableau de bord** : suivi des demandes, analytics et export.
+- **Comptes et rôles** : authentification JWT, mots de passe hachés (bcrypt), routes protégées.
 
-## Environment Variables
+## Architecture
+
+```
+Next.js 15 + TypeScript (app/, components/)   ──►  API de scoring FastAPI (scripts/api_backend.py)
+        │                                                   │
+   PostgreSQL (utilisateurs, demandes)          Pipeline scikit-learn (ColumnTransformer + modèle)
+                                                 + variante réseau de neurones PyTorch (best_credit_model.pth)
+```
+
+| Couche | Technologies |
+|---|---|
+| Front-end | Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui, Recharts |
+| API ML | Python, FastAPI, pandas, scikit-learn, PyTorch |
+| Données | PostgreSQL, jeu de 99 516 dossiers et 15 variables (`scripts/credit_dataset_99517_rows_noisy.csv`) |
+| Démo rapide | Interface Streamlit (`scripts/app.py`) |
+
+## Lancer le modèle seul
+
+```bash
+pip install -r requirements.txt
+cd scripts && uvicorn api_backend:app --reload     # API sur http://localhost:8000/docs
+streamlit run app.py                              # ou l'interface de démo
+```
+
+> ⚠️ Les identifiants créés par `scripts/init-db.js` sont des **identifiants de démonstration en local**. Changez-les avant tout déploiement.
+
+---
+
+## Installation complète (application web)
+
+### Variables d'environnement
 
 Add these environment variables to your `.env.local` file:
 
-\`\`\`env
+```env
 # Database Configuration
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
@@ -38,7 +65,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # Node Environment
 NODE_ENV=development
-\`\`\`
+```
 
 ## Database Setup
 
@@ -63,22 +90,22 @@ NODE_ENV=development
 ## Getting Started
 
 1. **Clone and install dependencies:**
-   \`\`\`bash
+   ```bash
    npm install
-   \`\`\`
+   ```
 
 2. **Set up environment variables:**
    Create `.env.local` with the database configuration above
 
 3. **Initialize the database:**
-   \`\`\`bash
+   ```bash
    npm run init-db
-   \`\`\`
+   ```
 
 4. **Start the development server:**
-   \`\`\`bash
+   ```bash
    npm run dev
-   \`\`\`
+   ```
 
 5. **Open your browser:**
    Navigate to [http://localhost:3000](http://localhost:3000)
@@ -166,7 +193,7 @@ The system includes secure authentication functionality:
 ## Development
 
 ### Project Structure
-\`\`\`
+```
 ├── app/                    # Next.js app directory
 │   ├── api/               # API routes
 │   ├── dashboard/         # Dashboard pages
@@ -182,7 +209,7 @@ The system includes secure authentication functionality:
 │   ├── db.ts            # Database connection
 │   └── email.ts         # Email utilities
 └── hooks/               # Custom React hooks
-\`\`\`
+```
 
 ### Adding New Features
 
