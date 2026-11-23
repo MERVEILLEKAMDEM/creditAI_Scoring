@@ -1,6 +1,6 @@
 # 💳 CreditAI Scoring – analyse du risque de crédit par IA
 
-**Application full-stack qui évalue le risque de défaut d'un demandeur de crédit** : un modèle de machine learning entraîné sur ~100 000 dossiers, une API de scoring et un tableau de bord sécurisé pour les analystes crédit.
+**Application full-stack qui évalue le risque de défaut d'un demandeur de crédit** : un modèle de machine learning construit sur un jeu de ~100 000 dossiers, une API de scoring et un tableau de bord sécurisé pour les analystes crédit.
 
 ## Ce que fait l'application
 
